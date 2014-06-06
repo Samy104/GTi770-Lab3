@@ -18,6 +18,8 @@ public class Main {
 		Matrix class2 = SplitMatrices(matrix, false);
 		//class1.print(0, 6);
 		//class2.print(0, 6);
+		
+		Task1.ExecuteTask1();
 	}
 	
 	public static Matrix ReadData()
