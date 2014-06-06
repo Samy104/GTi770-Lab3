@@ -19,7 +19,9 @@ public class Main {
 		//class1.print(0, 6);
 		//class2.print(0, 6);
 		
-		Task1.ExecuteTask1();
+		Task1 task1 = new Task1(class1, class2);
+		
+		task1.ExecuteTask1();
 	}
 	
 	public static Matrix ReadData()
