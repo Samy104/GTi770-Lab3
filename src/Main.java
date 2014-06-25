@@ -12,15 +12,12 @@ public class Main {
 	
 	public static void main(String[] args) {
 		Matrix matrix = ReadData();
-		//matrix.print(0, 6);
 		
 		Matrix class1 = SplitMatrices(matrix, true);
 		Matrix class2 = SplitMatrices(matrix, false);
-		//class1.print(0, 6);
-		//class2.print(0, 6);
+
 		
 		Task1 task1 = new Task1(class1, class2);
-		
 		task1.ExecuteTask1();
 	}
 	
