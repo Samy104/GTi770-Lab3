@@ -3,7 +3,7 @@ import Jama.Matrix;
 
 public class Task2 {
 	
-	Matrix z;
+	Matrix zed;
 	Task1 tsk = null;
 	int j = 0;
 	Matrix class1 = null;
@@ -16,33 +16,58 @@ public class Task2 {
 		tsk = new Task1(class1, class2);
 	}
 	
-	public Matrix entrainerModele(Matrix z, int j)
+	public void ExecuteTask2()
 	{
+		// Get matrix z from task one then train the model
+		tsk.sousTache1();
 		
-		return addToMatrix(getLogTen((probZC(z,j))) , Math.log10(probC(z,j)));
+		System.out.println("D�but de la tache 2");
+		this.zed = tsk.Z;
+		double ent = EntrainerModele(zed, 1);
+		
+		System.out.println("Le model entrain� nous retourne");
+		System.out.println(ent);
 	}
 	
-	public int classifierExemple(Matrix z)
+	public double EntrainerModele(Matrix z, int j)
+	{
+		
+		//return AddToMatrix(GetLogTen((ProbZC(z,j))) , Math.log10(ProbC(z,j)));
+		return Math.log10(ProbZC(z,j)) + Math.log10(ProbC(z,j));
+	}
+	
+	public int ClassifierExemple(Matrix z)
 	{
 		return 0;
 	}
 	
 	// Calcules la probabilité de x étant donné Cj
-	public Matrix probZC(Matrix z, int j)
+	public double ProbZC(Matrix z, int j)
 	{
-		Matrix coVar = tsk.reduireDimension(this.class1);
-		double x=0;
-		double mu = 0;
+		Matrix coVar = tsk.matriceDeCovariance1;
+		Matrix x = this.class1;
+		Matrix mu = tsk.getXbar();
+		double total = 0;
+		
+		for(int row = 0; row < coVar.getRowDimension(); row++)
+		{
+			for(int col = 0; col < coVar.getColumnDimension(); col++)
+			{
+				total += (1/(Math.sqrt(2*Math.PI)) * Math.pow(Math.E, (-Math.pow((x.get(row,col)-mu.get(row,col)),2)/(2*Math.pow(coVar.get(row,col),2)))));
+			}
+		}
+		
 		//z.getMatrix(arg0, arg1, arg2, arg3)
 		// return (1/(Math.sqrt(2*Math.PI)) * Math.pow(Math.E, (-Math.pow((x-mu),2)/(2*Math.pow(coVar,2)))));
-		return (coVar.times((Math.sqrt(2*Math.PI))).inverse()
-				.times(getEPowered(( getMatrixPowered(coVar,2).times(2) ).inverse()
+		/*return (coVar.times((Math.sqrt(2*Math.PI))).inverse()
+				.times(GetEPowered(( GetMatrixPowered(coVar,2).times(2) ).inverse()
 						.times((-Math.pow((x-mu),2))
-				))));
+				))));*/
+		return total;
 	}
 	
 	// Calcules la probabilité de Cj
-	public double probC(Matrix z, int j)
+	public double ProbC(Matrix z, int j)
 	{
 		return 0;
 	}
@@ -52,7 +77,7 @@ public class Task2 {
 	 * Will have to create a Extended Matrix class or add it to the Main or create a functions class.
 	 */
 	
-	public Matrix getMatrixPowered(Matrix m, int power)
+	public Matrix GetMatrixPowered(Matrix m, int power)
 	{
 		for(int i = 0; i <= power; i++)
 		{
@@ -62,7 +87,7 @@ public class Task2 {
 		return m;
 	}
 	
-	public Matrix getEPowered(Matrix m)
+	public Matrix GetEPowered(Matrix m)
 	{
 		Matrix e = new Matrix(m.getRowDimension(),m.getColumnDimension());
 		
@@ -76,7 +101,7 @@ public class Task2 {
 		
 		return e;
 	}
-	public Matrix getLogTen(Matrix m)
+	public Matrix GetLogTen(Matrix m)
 	{
 		Matrix l = new Matrix(m.getRowDimension(),m.getColumnDimension());
 		
@@ -91,7 +116,7 @@ public class Task2 {
 		return l;
 	}
 	
-	public Matrix addToMatrix(Matrix m, double d)
+	public Matrix AddToMatrix(Matrix m, double d)
 	{
 		Matrix a = new Matrix(m.getRowDimension(),m.getColumnDimension());
 		
@@ -106,7 +131,7 @@ public class Task2 {
 		return a;
 	}
 	
-	public Matrix addToMatrix(Matrix m, int x)
+	public Matrix AddToMatrix(Matrix m, int x)
 	{
 		Matrix a = new Matrix(m.getRowDimension(),m.getColumnDimension());
 		

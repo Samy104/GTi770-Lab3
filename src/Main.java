@@ -17,8 +17,8 @@ public class Main {
 		Matrix class2 = SplitMatrices(matrix, false);
 
 		
-		Task1 task1 = new Task1(class1, class2);
-		task1.ExecuteTask1();
+		Task2 task2 = new Task2(class1, class2);
+		task2.ExecuteTask2();
 	}
 	
 	public static Matrix ReadData()
