@@ -1,3 +1,5 @@
+import java.math.BigInteger;
+
 import Jama.Matrix;
 
 
@@ -33,10 +35,10 @@ public class Task2 {
 	{
 		
 		//return AddToMatrix(GetLogTen((ProbZC(z,j))) , Math.log10(ProbC(z,j)));
-		return Math.log10(ProbZC(z,j)) + Math.log10(ProbC(z,j));
+		return ProbZC(z,j) + Math.log10(ProbC(z,j));
 	}
 	
-	public int ClassifierExemple(Matrix z)
+	public int ClassifierExemple(Matrix z, double class1, double class2)
 	{
 		return 0;
 	}
@@ -44,32 +46,21 @@ public class Task2 {
 	// Calcules la probabilité de x étant donné Cj
 	public double ProbZC(Matrix z, int j)
 	{
-		Matrix coVar = tsk.matriceDeCovariance1;
-		Matrix x = this.class1;
-		Matrix mu = tsk.getXbar();
+		Matrix coVar = DivideToMatrix(z.transpose().times(z), z.transpose().times(z).getRowDimension());
+		double mu = tsk.mean(z, j);
 		double total = 0;
-		
-		for(int row = 0; row < coVar.getRowDimension(); row++)
+		for(int row = 0; row < RemoveToMatrix(z, mu).times(coVar.inverse().times(RemoveToMatrix(z, mu).transpose())).getRowDimension(); row++)
 		{
-			for(int col = 0; col < coVar.getColumnDimension(); col++)
-			{
-				total += (1/(Math.sqrt(2*Math.PI)) * Math.pow(Math.E, (-Math.pow((x.get(row,col)-mu.get(row,col)),2)/(2*Math.pow(coVar.get(row,col),2)))));
-			}
+			total += Math.log10(coVar.det())/(-2)- 
+					RemoveToMatrix(z, mu).times(coVar.inverse().times(RemoveToMatrix(z, mu).transpose())).get(row, j)/(2);
 		}
-		
-		//z.getMatrix(arg0, arg1, arg2, arg3)
-		// return (1/(Math.sqrt(2*Math.PI)) * Math.pow(Math.E, (-Math.pow((x-mu),2)/(2*Math.pow(coVar,2)))));
-		/*return (coVar.times((Math.sqrt(2*Math.PI))).inverse()
-				.times(GetEPowered(( GetMatrixPowered(coVar,2).times(2) ).inverse()
-						.times((-Math.pow((x-mu),2))
-				))));*/
-		return total;
+		return Math.pow(10,total);
 	}
 	
 	// Calcules la probabilité de Cj
 	public double ProbC(Matrix z, int j)
 	{
-		return 0;
+		return 1;
 	}
 	
 	/*
@@ -140,6 +131,66 @@ public class Task2 {
 			for(int j = 0; j < a.getColumnDimension(); j++)
 			{
 				a.set(i, j, (m.get(i, j) + x));
+			}
+		}
+		
+		return a;
+	}
+	
+	public Matrix RemoveToMatrix(Matrix m, int x)
+	{
+		Matrix a = new Matrix(m.getRowDimension(),m.getColumnDimension());
+		
+		for(int i = 0; i < a.getRowDimension();i++)
+		{
+			for(int j = 0; j < a.getColumnDimension(); j++)
+			{
+				a.set(i, j, (m.get(i, j) - x));
+			}
+		}
+		
+		return a;
+	}
+	
+	public Matrix RemoveToMatrix(Matrix m, double x)
+	{
+		Matrix a = new Matrix(m.getRowDimension(),m.getColumnDimension());
+		
+		for(int i = 0; i < a.getRowDimension();i++)
+		{
+			for(int j = 0; j < a.getColumnDimension(); j++)
+			{
+				a.set(i, j, (m.get(i, j) - x));
+			}
+		}
+		
+		return a;
+	}
+	
+	public Matrix DivideToMatrix(Matrix m, int x)
+	{
+		Matrix a = new Matrix(m.getRowDimension(),m.getColumnDimension());
+		
+		for(int i = 0; i < a.getRowDimension();i++)
+		{
+			for(int j = 0; j < a.getColumnDimension(); j++)
+			{
+				a.set(i, j, (m.get(i, j) * x));
+			}
+		}
+		
+		return a;
+	}
+	
+	public Matrix DivideToMatrix(Matrix m, double x)
+	{
+		Matrix a = new Matrix(m.getRowDimension(),m.getColumnDimension());
+		
+		for(int i = 0; i < a.getRowDimension();i++)
+		{
+			for(int j = 0; j < a.getColumnDimension(); j++)
+			{
+				a.set(i, j, (m.get(i, j) * x));
 			}
 		}
 		
