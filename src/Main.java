@@ -17,7 +17,7 @@ public class Main {
 		Matrix class2 = SplitMatrices(matrix, false);
 
 		
-		Task2 task2 = new Task2(class1, class2);
+		Task2 task2 = new Task2(matrix);
 		task2.ExecuteTask2();
 	}
 	

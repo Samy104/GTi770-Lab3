@@ -8,61 +8,56 @@ import Jama.Matrix;
 
 public class Task1 {
 
-	Matrix class1 = null;
-	Matrix class2 = null;
+	Matrix xMatrix = null;
 	
 	public Matrix xBar = null;
 	
-	public Matrix matriceDeCovariance1 = null;
-	public Matrix matriceDeCovariance2 = null;	
+	public Matrix matriceDeCovariance = null;
 	
 	Matrix principauxVecteurs = null;
 	Matrix Z = null;
+
 	
-	public Task1(Matrix class1, Matrix class2){
-		this.class1 = class1;
-		this.class2 = class2;
+
+	public Task1 (Matrix main)
+	{
+		this.xMatrix = main;
 	}
 	
 	public void ExecuteTask1()
 	{
-		sousTache1();
-		sousTache2();
+		//sousTache1();
+		//sousTache2();
 		
-	}
-	
-	public void sousTache1(){
-		//Matrice de covariance
+		this.matriceDeCovariance = reduireDimension(xMatrix);
 		
-		this.matriceDeCovariance1 = reduireDimension(class1);
+		System.out.print("Matrice de Covariance:" );
+		matriceDeCovariance.print(5,7);
 		
-		System.out.print("Matrice de Covariance Classe 1:" );
-		matriceDeCovariance1.print(5,7);
+		System.out.print("Vecteur Propre:" );
+		vecteurPropre(matriceDeCovariance).print(5, 3);
 		
-		System.out.print("Vecteur Propre Classe 1:" );
-		vecteurPropre(matriceDeCovariance1).print(5, 3);
+		System.out.print("Diagonal:" );
+		diagonal(matriceDeCovariance).print(5, 8);
+		getSwappedDIAGMatrix(diagonal(matriceDeCovariance)).print(5, 8);
 		
-		System.out.print("Diagonal Classe 1:" );
-		diagonal(matriceDeCovariance1).print(5, 8);
-		getSwappedDIAGMatrix(diagonal(matriceDeCovariance1)).print(5, 8);
-		
-		System.out.print("Vecteur Propre Transpose Classe 1:" );
-		vecPTranspose(matriceDeCovariance1).print(5, 3);
+		System.out.print("Vecteur Propre Transpose:" );
+		vecPTranspose(matriceDeCovariance).print(5, 3);
 		
 		
-		Matrix swapped = getSwappedDIAGMatrix(diagonal(matriceDeCovariance1));
+		Matrix swapped = getSwappedDIAGMatrix(diagonal(matriceDeCovariance));
 		
-		calculatePrincipauxVec(swapped,matriceDeCovariance1);
+		calculatePrincipauxVec(swapped,matriceDeCovariance);
 		
 		// Do the shit for task 1-5: Projeter dans le sous espace de K Z= Xmoyenne*Vk
 		
-		System.out.println("Matrice Z Projetée Classe 1");
+		System.out.println("Matrice Z Projete");
 		
 		Z = getXbar().times(principauxVecteurs);
 		
 		PrintWriter pw = null;
 		try {
-			pw = new PrintWriter(new FileOutputStream("Project_Z/ZProjetee_Classe1.csv"));
+			pw = new PrintWriter(new FileOutputStream("Project_Z/ZProjetee.csv"));
 			Z.print(pw, Z.getColumnDimension(), 8);
 			pw.close();
 		} catch (FileNotFoundException e) {
@@ -71,48 +66,7 @@ public class Task1 {
 		}
 		
 		Z.print(Z.getColumnDimension(), 8);
-	}
-	
-	public void sousTache2(){
-		//Matrice de covariance
 		
-			matriceDeCovariance2 = reduireDimension(class2);
-			
-			System.out.print("Matrice de Covariance Classe 2:" );
-			matriceDeCovariance2.print(5,7);
-			
-			System.out.print("Vecteur Propre Classe 2:" );
-			vecteurPropre(matriceDeCovariance2).print(5, 3);
-			
-			System.out.print("Diagonal Classe 2:" );
-			diagonal(matriceDeCovariance2).print(5, 8);
-			getSwappedDIAGMatrix(diagonal(matriceDeCovariance2)).print(5, 8);
-			
-			System.out.print("Vecteur Propre Transpose Classe 2:" );
-			vecPTranspose(matriceDeCovariance2).print(5, 3);
-			
-			
-			Matrix swapped = getSwappedDIAGMatrix(diagonal(matriceDeCovariance2));
-			
-			calculatePrincipauxVec(swapped,matriceDeCovariance2);
-			
-			// Do the shit for task 1-5: Projeter dans le sous espace de K Z= Xmoyenne*Vk
-			
-			System.out.println("Matrice Z Projetée ");
-			
-			Z = getXbar().times(principauxVecteurs);
-			
-			PrintWriter pw = null;
-			try {
-				pw = new PrintWriter(new FileOutputStream("Project_Z/ZProjetee_Classe2.csv"));
-				Z.print(pw, Z.getColumnDimension(), 8);
-				pw.close();
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			Z.print(Z.getColumnDimension(), 8);
 	}
 	
 	public void calculatePrincipauxVec(Matrix swap,Matrix matriceDeCov){

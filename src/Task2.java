@@ -5,62 +5,97 @@ import Jama.Matrix;
 
 public class Task2 {
 	
-	Matrix zed;
 	Task1 tsk = null;
 	int j = 0;
-	Matrix class1 = null;
-	Matrix class2 = null;
+	Matrix main = null;
+	Matrix mu = null;
+	Matrix coV = null;
 	
-	public Task2(Matrix class1, Matrix class2)
+
+	public Task2(Matrix x)
 	{
-		this.class1 = class1;
-		this.class2 = class2;
-		tsk = new Task1(class1, class2);
+		this.main = x;
+		tsk = new Task1(main);
 	}
 	
 	public void ExecuteTask2()
 	{
 		// Get matrix z from task one then train the model
-		tsk.sousTache1();
+		tsk.ExecuteTask1();
 		
 		System.out.println("DÈbut de la tache 2");
-		this.zed = tsk.Z;
-		double ent = EntrainerModele(zed, 1);
+		double ent = EntrainerModele(tsk.Z, 1);
 		
-		System.out.println("Le model entrainÈ nous retourne");
+		System.out.println("Le model entrainÈ 1 nous retourne");
 		System.out.println(ent);
+		
+		System.out.println(ProbC(tsk.Z,1));
+		/*
+		double ent2 = EntrainerModele(tsk.Z2, 2);
+		
+		System.out.println("Le model entrainÈ 2 nous retourne");
+		System.out.println(ent2);
+		
+		System.out.println(ProbC(tsk.Z2,2));*/
 	}
 	
 	public double EntrainerModele(Matrix z, int j)
 	{
-		
-		//return AddToMatrix(GetLogTen((ProbZC(z,j))) , Math.log10(ProbC(z,j)));
-		return ProbZC(z,j) + Math.log10(ProbC(z,j));
+		coV = DivideToMatrix(z.transpose().times(z), z.transpose().times(z).getRowDimension());
+		mu = GenerateMu(z);
+		coV.print(5, 8);
+		mu.print(5, 8);
+		return Math.log(ProbZC(z,j)) + Math.log(ProbC(z,j));
+		//return ProbZC(z,j);
 	}
 	
-	public int ClassifierExemple(Matrix z, double class1, double class2)
+	public int ClassifierExemple(Matrix z, int class1, int class2)
 	{
-		return 0;
+		return (EntrainerModele(z,class1) >= EntrainerModele(z,class2)) ? class1 : class2;
 	}
 	
 	// Calcules la probabilit√© de x √©tant donn√© Cj
 	public double ProbZC(Matrix z, int j)
 	{
-		Matrix coVar = DivideToMatrix(z.transpose().times(z), z.transpose().times(z).getRowDimension());
-		double mu = tsk.mean(z, j);
+		
 		double total = 0;
-		for(int row = 0; row < RemoveToMatrix(z, mu).times(coVar.inverse().times(RemoveToMatrix(z, mu).transpose())).getRowDimension(); row++)
+		int count = z.getColumnDimension() * z.getRowDimension();
+		
+		for(int col = 0; col < z.getColumnDimension(); col++)
 		{
-			total += Math.log10(coVar.det())/(-2)- 
-					RemoveToMatrix(z, mu).times(coVar.inverse().times(RemoveToMatrix(z, mu).transpose())).get(row, j)/(2);
+			for(int row = 0; row < z.getRowDimension(); row++)
+			{		
+				/*total += Math.log(coVar.det())/(-2);
+				total -= RemoveToMatrix(z, mu).times(coVar.inverse().times(RemoveToMatrix(z, mu).transpose())).get(row, col)/(2);*/
+				
+				total += 1/(Math.sqrt(coV.det())*2*Math.PI)
+						* Math.pow(Math.E, 
+								RemoveToMatrix(z, mu.get(0, col))
+								.times(coV.inverse()
+								.times(RemoveToMatrix(z, mu.get(0, col)).transpose()))
+								.get(row, col)/(-2));
+				
+			}
 		}
-		return Math.pow(10,total);
+		
+		return total/z.getRowDimension();
 	}
 	
 	// Calcules la probabilit√© de Cj
 	public double ProbC(Matrix z, int j)
 	{
-		return 1;
+		double probability = 1;
+		double total = this.main.getRowDimension();
+		if(j == 1)
+		{
+			probability = GetAmount(this.main, 1) / total;
+		}
+		else
+		{
+			probability = GetAmount(this.main, 1) / total;
+		}
+		
+		return probability;
 	}
 	
 	/*
@@ -68,6 +103,17 @@ public class Task2 {
 	 * Will have to create a Extended Matrix class or add it to the Main or create a functions class.
 	 */
 	
+	private int GetAmount(Matrix matrix, int i) {
+		int count = 0;
+		
+		for(int row = 0; row < matrix.getRowDimension(); row++)
+		{
+			count += (matrix.get(row, 0) == 1) ? 1 : 0;
+		}
+		
+		return count;
+	}
+
 	public Matrix GetMatrixPowered(Matrix m, int power)
 	{
 		for(int i = 0; i <= power; i++)
@@ -195,5 +241,24 @@ public class Task2 {
 		}
 		
 		return a;
+	}
+	
+	private Matrix GenerateMu(Matrix z) {
+		Matrix moyenne = new Matrix(1,z.getColumnDimension());
+		double dimension = z.getRowDimension();
+		
+		for(int col = 0; col < z.getColumnDimension(); col++)
+		{
+			double total = 0;
+			
+			for(int row = 0; row < z.getRowDimension(); row++)
+			{
+				total += z.get(row, col);
+			}
+			moyenne.set(0, col, total/dimension);
+			System.out.println(total + "  " + col);
+		}
+		
+		return moyenne;
 	}
 }
