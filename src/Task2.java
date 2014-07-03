@@ -23,13 +23,19 @@ public class Task2 {
 		// Get matrix z from task one then train the model
 		tsk.ExecuteTask1();
 		
-		System.out.println("D�but de la tache 2");
+		/*System.out.println("D�but de la tache 2");
 		double ent = EntrainerModele(tsk.Z, 1);
 		
 		System.out.println("Le model entrain� 1 nous retourne");
 		System.out.println(ent);
 		
-		System.out.println(ProbC(tsk.Z,1));
+		double ent2 = EntrainerModele(tsk.Z, 2);
+		
+		System.out.println("Le model entrain� 2 nous retourne");
+		System.out.println(ent2);*/
+		
+		System.out.println("La class choisie est : " + ClassifierExemple(tsk.Z,1,2));
+		
 		/*
 		double ent2 = EntrainerModele(tsk.Z2, 2);
 		
@@ -42,11 +48,11 @@ public class Task2 {
 	public double EntrainerModele(Matrix z, int j)
 	{
 		coV = DivideToMatrix(z.transpose().times(z), z.transpose().times(z).getRowDimension());
-		mu = GenerateMu(z);
+		mu = GenerateMu(z, j);
 		coV.print(5, 8);
 		mu.print(5, 8);
-		return Math.log(ProbZC(z,j)) + Math.log(ProbC(z,j));
-		//return ProbZC(z,j);
+		//return Math.log(ProbZC(z,j)) + Math.log(ProbC(z,j));
+		return ProbZC(z,j);
 	}
 	
 	public int ClassifierExemple(Matrix z, int class1, int class2)
@@ -57,32 +63,31 @@ public class Task2 {
 	// Calcules la probabilité de x étant donné Cj
 	public double ProbZC(Matrix z, int j)
 	{
-		Matrix gauss = new Matrix(z.getRowDimension(), 1);
-		int count = z.getColumnDimension() * z.getRowDimension();
-		
+		Matrix chosen = ClassedMatrix(z, j);
+		Matrix refused = ClassedMatrix(z, j==1?2:1);
+		double totalChosen = 0;
+		double totalRefused = 0;
 		for(int row = 0; row < z.getRowDimension(); row++)
 		{
-			double total = 0;
-			if(GetClass(z,row))
-			{
-				for(int col = 0; col < z.getColumnDimension(); col++)
-				{
-					total += Math.log(coV.det())/(-2);
-					total -= RemoveToMatrix(z, mu.get(0, col)).times(coV.inverse().times(RemoveToMatrix(z, mu.get(0, col)).transpose())).get(row, col)/(2);
-					
-					/*total += 1/(Math.sqrt(coV.det())*2*Math.PI)
-							* Math.pow(Math.E, 
-									RemoveToMatrix(z, mu.get(0, col))
-									.times(coV.inverse()
-									.times(RemoveToMatrix(z, mu.get(0, col)).transpose()))
-									.get(row, col)/(-2));
-					*/
-				}
-			}
 			
+				totalChosen += Math.log(coV.det())/(-2);
+				totalChosen -= RemoveToMatrix(chosen, mu.get(0, j-1)).times(coV.inverse().times(RemoveToMatrix(chosen, mu.get(0, j-1)).transpose())).get(row, j-1)/(2);
+				
+				
+				totalRefused += Math.log(coV.det())/(-2);
+				totalRefused -= RemoveToMatrix(refused, mu.get(0, j-1)).times(coV.inverse().times(RemoveToMatrix(refused, mu.get(0, j-1)).transpose())).get(row, j-1)/(2);
+				
+				/*total += 1/(Math.sqrt(coV.det())*2*Math.PI)
+						* Math.pow(Math.E, 
+								RemoveToMatrix(z, mu.get(0, j-1))
+								.times(coV.inverse()
+								.times(RemoveToMatrix(z, mu.get(0, j-1)).transpose()))
+								.get(row, j-1)/(-2));
+				*/
+
 		}
-		
-		return total/z.getRowDimension();
+
+		return totalChosen/(totalRefused+totalChosen);
 	}
 
 	// Calcules la probabilité de Cj
@@ -247,9 +252,9 @@ public class Task2 {
 		return a;
 	}
 	
-	private Matrix GenerateMu(Matrix z) {
+	private Matrix GenerateMu(Matrix z, int j) {
 		Matrix moyenne = new Matrix(1,z.getColumnDimension());
-		double dimension = z.getRowDimension();
+		double dimension = 0;
 		
 		for(int col = 0; col < z.getColumnDimension(); col++)
 		{
@@ -257,7 +262,11 @@ public class Task2 {
 			
 			for(int row = 0; row < z.getRowDimension(); row++)
 			{
-				total += z.get(row, col);
+				if(GetClass(row,j))
+				{
+					total += z.get(row, col);
+					dimension++;
+				}
 			}
 			moyenne.set(0, col, total/dimension);
 			System.out.println(total + "  " + col);
@@ -266,17 +275,36 @@ public class Task2 {
 		return moyenne;
 	}
 	
-	private boolean GetClass(Matrix z, int row) {
+	private boolean GetClass(int row, int j) {
 		
-		if(z.get(row, 0) - mu.get(0,0) > z.get(row, 1) - mu.get(0,1))
+		if(tsk.R.get(row, j-1) == 1)
 		{
-			
+			return true;
 		}
 		else
 		{
-			
+			return false;
+		}
+	}
+	
+	private Matrix ClassedMatrix(Matrix main, int chosen)
+	{
+		Matrix chosenM = new Matrix(main.getRowDimension(), main.getColumnDimension());
+		
+		for(int row = 0; row < main.getRowDimension(); row++)
+		{
+			if(tsk.R.get(row, chosen-1) == 1)
+			{
+				chosenM.set(row, 0, main.get(row, 0));
+				chosenM.set(row, 1, main.get(row, 1));
+			}
+			else
+			{
+				chosenM.set(row, 0, 0);
+				chosenM.set(row, 1, 0);
+			}
 		}
 		
-		return false;
+		return chosenM;
 	}
 }

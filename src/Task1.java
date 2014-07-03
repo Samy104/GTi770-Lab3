@@ -11,6 +11,7 @@ public class Task1 {
 	Matrix xMatrix = null;
 	
 	public Matrix xBar = null;
+	public Matrix R = null;
 	
 	public Matrix matriceDeCovariance = null;
 	
@@ -28,6 +29,8 @@ public class Task1 {
 	{
 		//sousTache1();
 		//sousTache2();
+		
+		generateR();
 		
 		this.matriceDeCovariance = reduireDimension(xMatrix);
 		
@@ -134,6 +137,24 @@ public class Task1 {
 	
 	public Matrix getXbarTranspose(){
 		return this.xBar.transpose();
+	}
+	
+	public void generateR()
+	{
+		R = new Matrix(xMatrix.getRowDimension(), 2);
+		for(int row = 0; row < xMatrix.getRowDimension(); row++)
+		{
+			if(xMatrix.get(row, 0) == 1)
+			{
+				R.set(row, 0, 1);
+				R.set(row, 1, 0);
+			}
+			else
+			{
+				R.set(row, 0, 0);
+				R.set(row, 1, 1);
+			}
+		}
 	}
 	
 	public Matrix getSwappedDIAGMatrix(Matrix start)
