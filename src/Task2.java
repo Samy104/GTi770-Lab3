@@ -23,17 +23,17 @@ public class Task2 {
 		// Get matrix z from task one then train the model
 		tsk.ExecuteTask1();
 		
-		System.out.println("Début de la tache 2");
+		System.out.println("Dï¿½but de la tache 2");
 		double ent = EntrainerModele(tsk.Z, 1);
 		
-		System.out.println("Le model entrainé 1 nous retourne");
+		System.out.println("Le model entrainï¿½ 1 nous retourne");
 		System.out.println(ent);
 		
 		System.out.println(ProbC(tsk.Z,1));
 		/*
 		double ent2 = EntrainerModele(tsk.Z2, 2);
 		
-		System.out.println("Le model entrainé 2 nous retourne");
+		System.out.println("Le model entrainï¿½ 2 nous retourne");
 		System.out.println(ent2);
 		
 		System.out.println(ProbC(tsk.Z2,2));*/
@@ -57,30 +57,34 @@ public class Task2 {
 	// Calcules la probabilitÃ© de x Ã©tant donnÃ© Cj
 	public double ProbZC(Matrix z, int j)
 	{
-		
-		double total = 0;
+		Matrix gauss = new Matrix(z.getRowDimension(), 1);
 		int count = z.getColumnDimension() * z.getRowDimension();
 		
-		for(int col = 0; col < z.getColumnDimension(); col++)
+		for(int row = 0; row < z.getRowDimension(); row++)
 		{
-			for(int row = 0; row < z.getRowDimension(); row++)
-			{		
-				/*total += Math.log(coVar.det())/(-2);
-				total -= RemoveToMatrix(z, mu).times(coVar.inverse().times(RemoveToMatrix(z, mu).transpose())).get(row, col)/(2);*/
-				
-				total += 1/(Math.sqrt(coV.det())*2*Math.PI)
-						* Math.pow(Math.E, 
-								RemoveToMatrix(z, mu.get(0, col))
-								.times(coV.inverse()
-								.times(RemoveToMatrix(z, mu.get(0, col)).transpose()))
-								.get(row, col)/(-2));
-				
+			double total = 0;
+			if(GetClass(z,row))
+			{
+				for(int col = 0; col < z.getColumnDimension(); col++)
+				{
+					total += Math.log(coV.det())/(-2);
+					total -= RemoveToMatrix(z, mu.get(0, col)).times(coV.inverse().times(RemoveToMatrix(z, mu.get(0, col)).transpose())).get(row, col)/(2);
+					
+					/*total += 1/(Math.sqrt(coV.det())*2*Math.PI)
+							* Math.pow(Math.E, 
+									RemoveToMatrix(z, mu.get(0, col))
+									.times(coV.inverse()
+									.times(RemoveToMatrix(z, mu.get(0, col)).transpose()))
+									.get(row, col)/(-2));
+					*/
+				}
 			}
+			
 		}
 		
 		return total/z.getRowDimension();
 	}
-	
+
 	// Calcules la probabilitÃ© de Cj
 	public double ProbC(Matrix z, int j)
 	{
@@ -260,5 +264,19 @@ public class Task2 {
 		}
 		
 		return moyenne;
+	}
+	
+	private boolean GetClass(Matrix z, int row) {
+		
+		if(z.get(row, 0) - mu.get(0,0) > z.get(row, 1) - mu.get(0,1))
+		{
+			
+		}
+		else
+		{
+			
+		}
+		
+		return false;
 	}
 }
