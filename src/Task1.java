@@ -67,7 +67,8 @@ public class Task1 {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		Z = getSwapMatrix(Z);
+		System.out.println("TESTING");
 		Z.print(Z.getColumnDimension(), 8);
 		
 	}
@@ -111,12 +112,12 @@ public class Task1 {
 		for(int j = 0; j < 5;j++){
 			average = mean(x,j+1);
 			for(int i = 0; i < x.getRowDimension();i++){
-				double meanTest = (x.get(i, j+1) - average)/x.getRowDimension();
+				double meanTest = (x.get(i, j+1) - average);
 				this.xBar.set(i, j,meanTest);
 			}
 		}
 		
-		return getXbarTranspose().times(getXbar());
+		return (getXbarTranspose().times(getXbar())).times(1.d/x.getRowDimension());
 	}
 	
 	public Matrix vecteurPropre(Matrix matriceDeCovariance){		
@@ -196,6 +197,21 @@ public class Task1 {
 		decision = (num/denum >= 0.9) ? true : false;
 		
 		return decision;
+	}
+	
+	public Matrix getSwapMatrix(Matrix swapping){
+		Matrix t = new Matrix(swapping.getRowDimension(),swapping.getColumnDimension());
+		
+		int indexJ = 0;
+		
+		for (int j = swapping.getColumnDimension()-1; j >= 0;j--){	
+			for(int i = 0; i < swapping.getRowDimension();i++){
+				t.set(i, indexJ,
+						swapping.get(i,j));
+			}
+			indexJ++;
+		}
+		return t;
 	}
 	
 }
