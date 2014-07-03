@@ -1,3 +1,6 @@
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.math.BigInteger;
 
 import Jama.Matrix;
@@ -23,71 +26,64 @@ public class Task2 {
 		// Get matrix z from task one then train the model
 		tsk.ExecuteTask1();
 		
-		/*System.out.println("D�but de la tache 2");
-		double ent = EntrainerModele(tsk.Z, 1);
+		System.out.println("D�but de la tache 2");
+		Matrix classed = ClassifierExemple(tsk.Z,1,2);
+		classed.print(2, 8);
+		PrintWriter pw = null;
+		try {
+			pw = new PrintWriter(new FileOutputStream("Project_Z/Classed.csv"));
+			classed.print(pw, classed.getColumnDimension(), 8);
+			pw.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-		System.out.println("Le model entrain� 1 nous retourne");
-		System.out.println(ent);
-		
-		double ent2 = EntrainerModele(tsk.Z, 2);
-		
-		System.out.println("Le model entrain� 2 nous retourne");
-		System.out.println(ent2);*/
-		
-		System.out.println("La class choisie est : " + ClassifierExemple(tsk.Z,1,2));
-		
-		/*
-		double ent2 = EntrainerModele(tsk.Z2, 2);
-		
-		System.out.println("Le model entrain� 2 nous retourne");
-		System.out.println(ent2);
-		
-		System.out.println(ProbC(tsk.Z2,2));*/
+		Validation vd = new Validation(tsk.Z);
 	}
 	
-	public double EntrainerModele(Matrix z, int j)
+	public double EntrainerModele(Matrix z, int j, int row)
 	{
-		coV = DivideToMatrix(z.transpose().times(z), z.transpose().times(z).getRowDimension());
-		mu = GenerateMu(z, j);
+		System.out.println("Generated MU");
+		mu = GenerateMu(tsk.Z, j);
 		coV.print(5, 8);
 		mu.print(5, 8);
-		//return Math.log(ProbZC(z,j)) + Math.log(ProbC(z,j));
-		return ProbZC(z,j);
+		return ProbZC(z,j,row) + Math.log(ProbC(z,j));
 	}
 	
-	public int ClassifierExemple(Matrix z, int class1, int class2)
+	public Matrix ClassifierExemple(Matrix z, int class1, int class2)
 	{
-		return (EntrainerModele(z,class1) >= EntrainerModele(z,class2)) ? class1 : class2;
+		coV = DivideToMatrix(z.transpose().times(z), z.transpose().times(z).getRowDimension());
+		Matrix classified = new Matrix(z.getRowDimension(), z.getColumnDimension()+1);
+		for(int row = 0; row < z.getRowDimension(); row++)
+		{
+			classified.set(row, 0, (EntrainerModele(z.getMatrix(row, row, 0, 1),class1, row) >= EntrainerModele(z.getMatrix(row, row, 0, 1),class2, row)) ? class1 : class2);
+			classified.set(row, 1, z.get(row,0));
+			classified.set(row, 2, z.get(row,1));
+		}
+		return classified;
 	}
 	
 	// Calcules la probabilité de x étant donné Cj
-	public double ProbZC(Matrix z, int j)
+	public double ProbZC(Matrix z, int j, int row)
 	{
-		Matrix chosen = ClassedMatrix(z, j);
-		Matrix refused = ClassedMatrix(z, j==1?2:1);
-		double totalChosen = 0;
-		double totalRefused = 0;
-		for(int row = 0; row < z.getRowDimension(); row++)
-		{
-			
-				totalChosen += Math.log(coV.det())/(-2);
-				totalChosen -= RemoveToMatrix(chosen, mu.get(0, j-1)).times(coV.inverse().times(RemoveToMatrix(chosen, mu.get(0, j-1)).transpose())).get(row, j-1)/(2);
-				
-				
-				totalRefused += Math.log(coV.det())/(-2);
-				totalRefused -= RemoveToMatrix(refused, mu.get(0, j-1)).times(coV.inverse().times(RemoveToMatrix(refused, mu.get(0, j-1)).transpose())).get(row, j-1)/(2);
-				
-				/*total += 1/(Math.sqrt(coV.det())*2*Math.PI)
-						* Math.pow(Math.E, 
-								RemoveToMatrix(z, mu.get(0, j-1))
-								.times(coV.inverse()
-								.times(RemoveToMatrix(z, mu.get(0, j-1)).transpose()))
-								.get(row, j-1)/(-2));
-				*/
+		double probability = 0;
 
-		}
+		probability += Math.log(coV.det())/(-2);
+		probability -= RemoveToMatrix(z, mu.get(0, j-1))
+				.times(coV.inverse().times(RemoveToMatrix(z, mu.get(0, j-1))
+						.transpose()))
+						.get(0, 0)/(2);
+		
+		/*probability += 1/(Math.sqrt(coV.det())*2*Math.PI)
+				* Math.pow(Math.E, 
+						RemoveToMatrix(z, mu.get(0, j-1))
+						.times(coV.inverse()
+						.times(RemoveToMatrix(z, mu.get(0, j-1)).transpose()))
+						.get(row, j-1)/(-2));
+		*/
 
-		return totalChosen/(totalRefused+totalChosen);
+		return probability;
 	}
 
 	// Calcules la probabilité de Cj
@@ -269,7 +265,6 @@ public class Task2 {
 				}
 			}
 			moyenne.set(0, col, total/dimension);
-			System.out.println(total + "  " + col);
 		}
 		
 		return moyenne;
@@ -287,12 +282,10 @@ public class Task2 {
 		}
 	}
 	
-	private Matrix ClassedMatrix(Matrix main, int chosen)
+	private Matrix ClassedMatrix(Matrix main, int chosen, int row)
 	{
 		Matrix chosenM = new Matrix(main.getRowDimension(), main.getColumnDimension());
 		
-		for(int row = 0; row < main.getRowDimension(); row++)
-		{
 			if(tsk.R.get(row, chosen-1) == 1)
 			{
 				chosenM.set(row, 0, main.get(row, 0));
@@ -303,7 +296,6 @@ public class Task2 {
 				chosenM.set(row, 0, 0);
 				chosenM.set(row, 1, 0);
 			}
-		}
 		
 		return chosenM;
 	}
