@@ -1,7 +1,13 @@
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Random;
 
 import Jama.Matrix;
 
@@ -11,8 +17,10 @@ public class Task2 {
 	Task1 tsk = null;
 	int j = 0;
 	Matrix main = null;
-	Matrix mu = null;
-	Matrix coV = null;
+	Matrix mu1 = null;
+	Matrix coV1 = null;
+	Matrix mu2 = null;
+	Matrix coV2 = null;
 	
 
 	public Task2(Matrix x)
@@ -27,58 +35,111 @@ public class Task2 {
 		tsk.ExecuteTask1();
 		
 		System.out.println("D�but de la tache 2");
-		Matrix classed = ClassifierExemple(tsk.Z,1,2);
-		classed.print(2, 8);
-		PrintWriter pw = null;
-		try {
-			pw = new PrintWriter(new FileOutputStream("Project_Z/Classed.csv"));
-			classed.print(pw, classed.getColumnDimension(), 8);
-			pw.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
-		Validation vd = new Validation(tsk.Z);
+		
+		Validation(tsk.Z);
 	}
 	
-	public double EntrainerModele(Matrix z, int j, int row)
+	public void EntrainerModele(Matrix z, int j)
 	{
-		mu = GenerateMu(tsk.Z, j);
-		return ProbZC(z,j,row) + Math.log(ProbC(z,j));
-	}
-	
-	public Matrix ClassifierExemple(Matrix z, int class1, int class2)
-	{
-		coV = DivideToMatrix(z.transpose().times(z), z.transpose().times(z).getRowDimension());
-		Matrix classified = new Matrix(z.getRowDimension(), z.getColumnDimension()+1);
-		for(int row = 0; row < z.getRowDimension(); row++)
+		if(j == 1)
 		{
-			classified.set(row, 0, (EntrainerModele(z.getMatrix(row, row, 0, 1),class1, row) >= EntrainerModele(z.getMatrix(row, row, 0, 1),class2, row)) ? class1 : class2);
-			classified.set(row, 1, z.get(row,0));
-			classified.set(row, 2, z.get(row,1));
+			mu1 = GenerateMu(tsk.Z, j);
+			coV1 = GenerateCoVar(tsk.Z, j); 
 		}
-		return classified;
+		else
+		{
+			mu2 = GenerateMu(tsk.Z, j);
+			coV2 = GenerateCoVar(tsk.Z, j); 
+		}
+			
+	}
+
+		
+		public void Validation(Matrix z)
+		{
+			Matrix Zed = /*returnRandomizedMatrix(*/z/*)*/;
+			
+			double total = 0;
+			
+			ArrayList<Matrix> arrayMatrix = new ArrayList<Matrix>(10);
+			double moyenneErreur = 0;
+			double totaux[] = new double[10];
+			
+			
+			// Populate array list
+			for(int i=0; i<10; i++)
+			{
+				Matrix zedTot = new Matrix(25,2);
+				zedTot.setMatrix(0, 14, 0, 1, Zed.getMatrix(15*i, (15*i+14), 0, 1));
+				zedTot.setMatrix(15, 24, 0, 1, Zed.getMatrix((10*i+150), (10*i+159), 0, 1));
+				arrayMatrix.add(zedTot);
+			}
+			
+			for(int k = 0; k < 10; k++)
+			{
+				System.out.println("Itération # "+k);
+				EntrainerModele(aggregateExceptOne(arrayMatrix,k), 1);
+				EntrainerModele(aggregateExceptOne(arrayMatrix,k), 2);
+				
+				int nbErreurs = 0;
+				for(int row = 0; row < arrayMatrix.get(k).getRowDimension(); row++)
+				{
+							
+					nbErreurs += (ClassifierExemple(arrayMatrix.get(k)) == 
+								((row < 15) ? 1 : 2)) 
+								? 0 : 1;
+
+				}
+				
+				totaux[k] = nbErreurs;
+				moyenneErreur += nbErreurs;
+				System.out.println("Erreurs " + nbErreurs);
+			}
+			moyenneErreur = moyenneErreur/10;
+			System.out.println("Moyenne d'erreurs " + moyenneErreur);
+			
+			double sumVar = 0;
+			for(int t = 0; t < 10; t++)
+			{
+				sumVar += Math.pow(totaux[t]/25-(moyenneErreur/25),2);
+			}
+			sumVar = sumVar/10;
+			
+			System.out.println("\nL'erreur moyen " + moyenneErreur);
+			System.out.println("Taux d'erreur moyen " + moyenneErreur/25);
+			System.out.println("Variance de taux d'erreur moyen " + sumVar);
+			
+		}
+
+		
+
+
+	public double ClassifierExemple(Matrix z)
+	{
+		//return classified;
+		return (ProbZC(z,1) + Math.log(ProbC(z,1)) > ProbZC(z,2) + Math.log(ProbC(z,2))) ? 1 : 2;
 	}
 	
 	// Calcules la probabilité de x étant donné Cj
-	public double ProbZC(Matrix z, int j, int row)
+	public double ProbZC(Matrix z, int j)
 	{
 		double probability = 0;
-
-		probability += Math.log(coV.det())/(-2);
-		probability -= RemoveToMatrix(z, mu.get(0, j-1))
-				.times(coV.inverse().times(RemoveToMatrix(z, mu.get(0, j-1))
-						.transpose()))
-						.get(0, 0)/(2);
+		if(j==1)
+		{
+			probability += Math.log(coV1.det())/(-2)-RemoveToMatrix(z, mu1.get(0, j-1))
+					.times(coV1.inverse().times(RemoveToMatrix(z, mu1.get(0, j-1))
+							.transpose()))
+							.get(0, 0)/(2);
+		}
+		else
+		{
+			probability += Math.log(coV2.det())/(-2)-RemoveToMatrix(z, mu2.get(0, j-1))
+					.times(coV2.inverse().times(RemoveToMatrix(z, mu2.get(0, j-1))
+							.transpose()))
+							.get(0, 0)/(2);
+		}
 		
-		/*probability += 1/(Math.sqrt(coV.det())*2*Math.PI)
-				* Math.pow(Math.E, 
-						RemoveToMatrix(z, mu.get(0, j-1))
-						.times(coV.inverse()
-						.times(RemoveToMatrix(z, mu.get(0, j-1)).transpose()))
-						.get(row, j-1)/(-2));
-		*/
 
 		return probability;
 	}
@@ -94,7 +155,7 @@ public class Task2 {
 		}
 		else
 		{
-			probability = GetAmount(this.main, 1) / total;
+			probability = GetAmount(this.main, 2) / total;
 		}
 		
 		return probability;
@@ -107,10 +168,9 @@ public class Task2 {
 	
 	private int GetAmount(Matrix matrix, int i) {
 		int count = 0;
-		
 		for(int row = 0; row < matrix.getRowDimension(); row++)
 		{
-			count += (matrix.get(row, 0) == 1) ? 1 : 0;
+			count += (matrix.get(row, 0) == i) ? 1 : 0;
 		}
 		
 		return count;
@@ -223,7 +283,7 @@ public class Task2 {
 		{
 			for(int j = 0; j < a.getColumnDimension(); j++)
 			{
-				a.set(i, j, (m.get(i, j) * x));
+				a.set(i, j, (m.get(i, j) / x));
 			}
 		}
 		
@@ -238,7 +298,7 @@ public class Task2 {
 		{
 			for(int j = 0; j < a.getColumnDimension(); j++)
 			{
-				a.set(i, j, (m.get(i, j) * x));
+				a.set(i, j, (m.get(i, j) / x));
 			}
 		}
 		
@@ -265,6 +325,30 @@ public class Task2 {
 		}
 		
 		return moyenne;
+	}
+	
+	private Matrix GenerateCoVar(Matrix z, int j) {
+		
+		ArrayList<Matrix> coVarList = new ArrayList<Matrix>();
+		for(int i = 0; i < z.getRowDimension(); i++)
+		{
+			if(GetClass(i,j))
+			{
+				Matrix mat = new Matrix(1,2);
+				mat.set(0,0,z.get(i, 0));
+				mat.set(0,1,z.get(i, 1));
+				coVarList.add(mat);
+			}
+			
+		}
+		
+		Matrix zClass = new Matrix(coVarList.size(),2);
+		int[] col = {0,1};
+		for(int i = 0; i < zClass.getRowDimension(); i++)
+		{
+			zClass.setMatrix(i,i,col,coVarList.get(i));
+		}	
+		return DivideToMatrix(zClass.transpose().times(zClass), zClass.getRowDimension());
 	}
 	
 	private boolean GetClass(int row, int j) {
@@ -295,5 +379,75 @@ public class Task2 {
 			}
 		
 		return chosenM;
+	}
+	/**
+	 * Retourne une matrice aléatoirement choisi
+	 * @author Samy Lemcelli
+	 * 
+	 * @param Matrice m
+	 * @return Matrice aléatoire
+	 */
+	
+	public Matrix returnRandomizedMatrix(Matrix m) {
+		
+		Matrix randMatrix = new Matrix(m.getRowDimension(), m.getColumnDimension());
+		ArrayList<Integer> remainingElements = new ArrayList<Integer>(m.getRowDimension());
+		
+		for(int i = 0; i < m.getRowDimension(); i++)
+		{
+			remainingElements.add(i);
+		}
+		int finalPosition = 0;
+		while(!remainingElements.isEmpty())
+		{
+			int position = new Random().nextInt(remainingElements.size());
+			int random = remainingElements.get(position);
+			randMatrix.set(finalPosition,0,m.get(random, 0));
+			randMatrix.set(finalPosition,1,m.get(random, 1));
+			remainingElements.remove(position);
+			finalPosition++;
+		}
+		return randMatrix;
+	}
+	
+	/**
+	 * La fonction prends le ArrayList de Matrices et choisis les 225 rangées qui n'appartiennent pas à l'indice.
+	 * 
+	 * @param ArrayList<Matrix> agg
+	 * @param int thene
+	 * @return Matrice aggregation
+	 */
+	public Matrix aggregateExceptOne(ArrayList<Matrix> agg, int theone)
+	{
+		Matrix aggregation = new Matrix(225,2);
+		int currentPos = 0;
+		int[] col = {0,1};
+		
+		for(int i = 1; i < 10; i++)
+		{
+			if(theone != i)
+			{
+				aggregation.setMatrix(currentPos,(currentPos+24), col, agg.get(i));
+				currentPos += 25;
+			}
+			
+		}
+		
+		return aggregation;
+	}
+	
+	public void printFile(String input, String poly){
+		Writer writer = null;
+
+		try {
+		    writer = new BufferedWriter(new OutputStreamWriter(
+		          new FileOutputStream("data"+poly+".txt"), "utf-8"));
+		    
+		    writer.append(input);
+		} catch (IOException ex) {
+		  // report
+		} finally {
+		   try {writer.close();} catch (Exception ex) {}
+		}
 	}
 }
