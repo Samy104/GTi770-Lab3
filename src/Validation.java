@@ -17,16 +17,40 @@ public class Validation {
 	{
 		this.Z = returnRandomizedMatrix(z);
 		
-		Matrix w = entrainerModele(this.Z.getMatrix(0, 24, 0, 1), 3);
-		
 		double total = 0;
+		
+		ArrayList<Matrix> arrayMatrix = new ArrayList<Matrix>(10);
+		double moyenne = 0;
+		double totaux[] = new double[10];
+		
+		
+		// Populate array list
+		for(int i=0; i<10; i++)
+		{
+			arrayMatrix.add(this.Z.getMatrix(25*i, (25*i+24), 0, 1));
+		}
 		
 		for(int k = 0; k < 10; k++)
 		{
-			total += evaluerModele(w,z.getMatrix(25+20*k, (20*k+44), 0, 1));
+			@SuppressWarnings("null")
+			Matrix w = entrainerModele(aggregateExceptOne(arrayMatrix, k), 3);
+			total = evaluerModele(w,arrayMatrix.get(k));
+			totaux[k] = total;
+			moyenne += total;
 		}
+		moyenne = moyenne/10;
 		
-		System.out.println("L'erreur moyen " + total/10);
+		double sumVar = 0;
+		for(int t = 0; t < 10; t++)
+		{
+			sumVar += Math.pow(totaux[t]-(moyenne/25),2);
+		}
+		sumVar = sumVar/10;
+		
+		System.out.println("L'erreur moyen " + moyenne);
+		System.out.println("Taux d'erreur moyen " + moyenne/25);
+		System.out.println("Variance de taux d'erreur moyen " + sumVar);
+		
 	}
 	
 	/**
@@ -52,7 +76,7 @@ public class Validation {
                 sum += Math.pow((valX2 - val),2);
         }
         
-        return sum;
+        return sum/225;
 	}
 	
 	public Matrix entrainerModele(Matrix m, int polynomeRegression){
@@ -122,6 +146,32 @@ public class Validation {
 	{
 		return (vander.transpose().times(vander)).inverse().times(vander.transpose()).times(y);
 	}
+	/**
+	 * La fonction prends le ArrayList de Matrices et choisis les 225 rangées qui n'appartiennent pas à l'indice.
+	 * 
+	 * @param ArrayList<Matrix> agg
+	 * @param int thene
+	 * @return Matrice aggregation
+	 */
+	public Matrix aggregateExceptOne(ArrayList<Matrix> agg, int theone)
+	{
+		Matrix aggregation = new Matrix(225,2);
+		int currentPos = 0;
+		int[] col = {0,1};
+		
+		for(int i = 1; i < 10; i++)
+		{
+			if(theone != i)
+			{
+				aggregation.setMatrix(currentPos,(currentPos+24), col, agg.get(i));
+				currentPos += 25;
+			}
+			
+		}
+		
+		return aggregation;
+	}
+	
 	public void printFile(String input, String poly){
 		Writer writer = null;
 

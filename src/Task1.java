@@ -68,7 +68,6 @@ public class Task1 {
 			e.printStackTrace();
 		}
 		Z = getSwapMatrix(Z);
-		System.out.println("TESTING");
 		Z.print(Z.getColumnDimension(), 8);
 		
 	}

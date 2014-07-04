@@ -44,10 +44,7 @@ public class Task2 {
 	
 	public double EntrainerModele(Matrix z, int j, int row)
 	{
-		System.out.println("Generated MU");
 		mu = GenerateMu(tsk.Z, j);
-		coV.print(5, 8);
-		mu.print(5, 8);
 		return ProbZC(z,j,row) + Math.log(ProbC(z,j));
 	}
 	
