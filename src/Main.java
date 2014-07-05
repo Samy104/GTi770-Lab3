@@ -1,4 +1,8 @@
-
+/**
+ * GTI770 - Laboratoire 3
+ * Équipe 3
+ * @author Christopher Lariviere, Samy Lemcelli
+ */
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -10,16 +14,22 @@ public class Main {
 	private static String fileString = "data.txt";
 	private static int numberDataByLine = 6;
 	
+	/**
+	 * Objectif: Main sert à créer l'objet Tâche 2 (qui instantie la tâche 1 et la validation croisée k-fold)
+	 * @param null
+	 */
+	
 	public static void main(String[] args) {
 		Matrix matrix = ReadData();
-		
-		Matrix class1 = SplitMatrices(matrix, true);
-		Matrix class2 = SplitMatrices(matrix, false);
-
-		
+				
 		Task2 task2 = new Task2(matrix);
 		task2.ExecuteTask2();
 	}
+	
+	/**
+	 * Objectif: Lire les données d'un fichier texte
+	 * @return la matrice originale provenant du fichier texte
+	 */
 	
 	public static Matrix ReadData()
 	{
@@ -73,41 +83,5 @@ public class Main {
 		}
 		
 		return matrix;
-	}
-
-	public static Matrix SplitMatrices(Matrix originalMatrix, boolean getClassOne)
-	{
-		int rowIndex = -1;
-		double newClass = 2d;
-		Matrix matrix = null;
-		
-		
-		for(int i = 0; i < originalMatrix.getRowDimension(); i++)
-		{
-			if(originalMatrix.get(i, 0) == newClass)
-			{
-				rowIndex = i;
-				break;
-			}
-		}
-		
-		if(rowIndex != -1)
-		{
-			if(getClassOne)
-			{
-				matrix = originalMatrix.getMatrix(0, rowIndex-1, 0, numberDataByLine-1);
-				return matrix;
-			}
-			else
-			{
-				matrix = originalMatrix.getMatrix(rowIndex, originalMatrix.getRowDimension() - 1, 0, numberDataByLine-1);
-				return matrix;
-			}
-		}
-		else
-		{
-			System.out.println("Can't find two classes !");
-			return null;
-		}
 	}
 }

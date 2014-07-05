@@ -1,9 +1,11 @@
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
+
+/**
+ * @author Christopher Lariviere
+ * 		   Samy Lemcelli
+ */
+
 import java.util.Arrays;
 import java.util.Collections;
-
 import Jama.Matrix;
 
 public class Task1 {
@@ -19,17 +21,24 @@ public class Task1 {
 	Matrix Z = null;
 
 	
-
+	/**
+	 * Initialise la matrice xMatrix avec la matrice passée en paramètre
+	 * 
+	 * @param matriceOriginal
+	 */
+	
 	public Task1 (Matrix main)
 	{
 		this.xMatrix = main;
 	}
 	
+	/**
+	 * Objectif: Exécuter la tâche 1, cette tâche suis les étapes de la présentation diapositive
+	 * @return void
+	 */
+	
 	public void ExecuteTask1()
-	{
-		//sousTache1();
-		//sousTache2();
-		
+	{		
 		generateR();
 		
 		this.matriceDeCovariance = reduireDimension(xMatrix);
@@ -40,37 +49,45 @@ public class Task1 {
 		System.out.print("Vecteur Propre:" );
 		vecteurPropre(matriceDeCovariance).print(5, 3);
 		
-		System.out.print("Diagonal:" );
-		diagonal(matriceDeCovariance).print(5, 8);
+		System.out.print("Diagonal (Ordonnée):" );
 		getSwappedDIAGMatrix(diagonal(matriceDeCovariance)).print(5, 8);
 		
 		System.out.print("Vecteur Propre Transpose:" );
 		vecPTranspose(matriceDeCovariance).print(5, 3);
 		
 		
+		
 		Matrix swapped = getSwappedDIAGMatrix(diagonal(matriceDeCovariance));
 		
 		calculatePrincipauxVec(swapped,matriceDeCovariance);
-		
-		// Do the shit for task 1-5: Projeter dans le sous espace de K Z= Xmoyenne*Vk
 		
 		System.out.println("Matrice Z Projete");
 		
 		Z = getXbar().times(principauxVecteurs);
 		
-		PrintWriter pw = null;
+		//Ce code a été commenter, la chargée de laboratoire n'a pas besoin d'imprimer le Z projetee dans un fichier
+		
+		/*PrintWriter pw = null;
 		try {
 			pw = new PrintWriter(new FileOutputStream("Project_Z/ZProjetee.csv"));
 			Z.print(pw, Z.getColumnDimension(), 8);
 			pw.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 		Z = getSwapMatrix(Z);
 		Z.print(Z.getColumnDimension(), 8);
 		
 	}
+	
+	/**
+	 * Cette fonction calcule les principaux a l'aide de la fonction getKPrincipauxVecteurs()
+	 * 
+	 * @param la matrice diagonale ordonnée en ordre décroissant
+	 * @param la matrice de covariance
+	 * 
+	 * @return la matrice des K principaux vecteurs
+	 */
 	
 	public void calculatePrincipauxVec(Matrix swap,Matrix matriceDeCov){
 		int i = 0;
@@ -88,6 +105,14 @@ public class Task1 {
 		
 	}
 	
+	/**
+	 * Calcule la moyenne de la colonne du matrix passée en paramètre
+	 * 
+	 * @param Matrice x
+	 * @param le numéro de la colonne que nous voulons la moyenne
+	 * @return la moyenne de la colonne
+	 */
+	
 	public double mean(Matrix x, int column)
 	{
 		double data = 0;
@@ -100,8 +125,10 @@ public class Task1 {
 	}
 	
 	/**
-	 * Matrice de covariance
-	 * @return
+	 * Réduit la dimension de la matrice passée en paramètre
+	 * Calcule X barre centrée, X barre, et x barre transposée
+	 * 
+	 * @return Matrix Matrice de dimension réduite
 	 */
 	
 	public Matrix reduireDimension(Matrix x){	
@@ -119,25 +146,57 @@ public class Task1 {
 		return (getXbarTranspose().times(getXbar())).times(1.d/x.getRowDimension());
 	}
 	
+	/**
+	 * Retourne la matrice de vecteur propre à l'aide des fonctions de JAMA Matrix project
+	 * @param Matrix matriceX
+	 * @return Matrix Matrice de vecteur propre
+	 */
+	
 	public Matrix vecteurPropre(Matrix matriceDeCovariance){		
 		return matriceDeCovariance.eig().getV();	
 	}
+	
+	/**
+	 * Retourne la matrice diagonale de la matrice passée en paramètre
+	 * @param Matrix matriceX
+	 * @return Matrix matrice diagonale
+	 */
 	
 	public Matrix diagonal(Matrix matriceDeCovariance){
 		return matriceDeCovariance.eig().getD();
 	}
 	
+	/**
+	 * Retourne la matrice des vecteurs propres transposées
+	 * @param Matrix matriceX
+	 * @return Matrix matrice de vecteurs propres transposées
+	 */
+	
 	public Matrix vecPTranspose(Matrix matriceDeCovariance){
 		return vecteurPropre(matriceDeCovariance).transpose();
 	}
+	
+	/**
+	 * Retourne la matrice X Barre
+	 * @return Matrix X Barre
+	 */
 	
 	public Matrix getXbar(){
 		return this.xBar;
 	}
 	
+	/**
+	 * Retourne la matrice X Barre transposée
+	 * @return matrice X Barre transposée
+	 */
+	
 	public Matrix getXbarTranspose(){
 		return this.xBar.transpose();
 	}
+	
+	/**
+	 * Génère la matrice R, qui contient les classes originales de la matrice originale
+	 */
 	
 	public void generateR()
 	{
@@ -156,6 +215,12 @@ public class Task1 {
 			}
 		}
 	}
+	
+	/**
+	 * Ordonne la matrice passée en paramètre en ordre décroissant
+	 * @param Matrix matrice à ordonnée
+	 * @return Matrix matrice ordonoée en ordre décroissant
+	 */
 	
 	public Matrix getSwappedDIAGMatrix(Matrix start)
 	{
@@ -177,6 +242,14 @@ public class Task1 {
 		return exit;
 	}
 	
+	/**
+	 * Évalue si les vecteurs propres représentent un minimum de alpha >= 90%
+	 * Cela signifie que les K colonnes des vecteurs propres représentent plus que 90% des données
+	 * @param k
+	 * @param Matrix 
+	 * @return vrai ou faux, si la sum des k colonnes représentent plus que 90% des données
+	 */
+	
 	public boolean getKPrincipauxVecteurs(int k, Matrix from)
 	{
 		boolean decision = false;
@@ -197,6 +270,14 @@ public class Task1 {
 		
 		return decision;
 	}
+	
+	/**
+	 * Retourne la matrice échanger en colonnes.
+	 * Ex: colonne 5 serait à la position 1, colonne 4 serait à colonne 2... ainsi de suite.
+	 * 
+	 * @param Matrix matrice a échanger ces colonnes de positions
+	 * @return Matrix échanger
+	 */
 	
 	public Matrix getSwapMatrix(Matrix swapping){
 		Matrix t = new Matrix(swapping.getRowDimension(),swapping.getColumnDimension());
